@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 
 from src.constants import BATCH_SIZE, GRID_SIZE, IMAGE_SIZE, NUM_CLASSES
 
-#VOC_ROOT = "E:\\datasets\\pascal-voc-2012\\VOC2012_train_val"
-VOC_ROOT =  "/content/datasets/pascal-voc-2012/VOC2012_train_val"
+VOC_ROOT = os.getenv(
+    "VOC_ROOT",
+    "E:\\datasets\\pascal-voc-2012\\VOC2012_train_val"
+)
 IMAGE_DIR = os.path.join(VOC_ROOT, "JPEGImages")
 ANNOTATION_DIR = os.path.join(VOC_ROOT, "Annotations")
 TRAIN_FILE = os.path.join(VOC_ROOT, "ImageSets", "Main", "train.txt")
