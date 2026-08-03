@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# TensorFlow
+checkpoints/
+*.ckpt*
+*.keras
+checkpoints/
+
+# History
+history.json
+history/
+
+# VS Code
+.vscode/
+
+# Conda
+.env
+.venv
+env/
+anaconda_projects/
+
+# Logs
+*.log
+
+# OS files
+Thumbs.db
+.DS_Store
