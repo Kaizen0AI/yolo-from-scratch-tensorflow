@@ -108,7 +108,8 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
             best_loss = avg_total_loss
             wait = 0
             lr_wait = 0
-            checkpoint.save("checkpoints/best_model")
+            #checkpoint.save("checkpoints/best_model")
+            checkpoint.save("/content/drive/MyDrive/yolo_checkpoints/best_model")
 
             print("Loss improved! Best model saved!")
         else:
