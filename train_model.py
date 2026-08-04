@@ -135,7 +135,8 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
             break
 
     print('TRAINING COMPLETE!')
-    with open("history/history.json", "w") as f:
+    #with open("history/history.json", "w") as f:
+    with open("/content/drive/MyDrive/yolo_history/history.json", "w") as f:
         json.dump(history, f)
     return history
 
