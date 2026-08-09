@@ -105,6 +105,8 @@ def add_targets(dataset, target_fn, target_shape, target_kwargs=None):
         labels = example["labels"]
 
         def _generate_targets_py(boxes_py, labels_py):
+            boxes_py = boxes_py.numpy()
+            labels_py = labels_py.numpy()
             return target_fn(boxes_py, labels_py, **(target_kwargs or {})).numpy()
 
         targets = tf.py_function(
