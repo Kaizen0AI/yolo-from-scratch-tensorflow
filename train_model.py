@@ -5,6 +5,7 @@ from src.dataset import build_yolo_dataset
 from src.loss import YOLOLoss
 import time
 import json
+import os
 
 def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoch = None, VERBOSE_STEPS = True):
 
@@ -108,8 +109,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
             best_loss = avg_total_loss
             wait = 0
             lr_wait = 0
-            #checkpoint.save("checkpoints/best_model")
-            checkpoint.save("/content/drive/MyDrive/yolo_checkpoints/best_model")
+            checkpoint.save(os.getenv("CHECKPOINT_PATH", "checkpoints/best_model"))
 
             print("Loss improved! Best model saved!")
         else:
@@ -135,8 +135,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
             break
 
     print('TRAINING COMPLETE!')
-    #with open("history/history.json", "w") as f:
-    with open("/content/drive/MyDrive/yolo_history/history.json", "w") as f:
+    with open(os.getenv("HISTORY_PATH", "history/history.json"), "w") as f:
         json.dump(history, f)
     return history
 
