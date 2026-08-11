@@ -37,6 +37,10 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
     min_lr = 1e-6
 
     checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=model)
+    checkpoint_manager = tf.train.CheckpointManager(
+        checkpoint,
+        directory=os.getenv("CHECKPOINT_PATH", "checkpoints/best_model"),
+        max_to_keep=1)
 
     num_batches = tf.data.experimental.cardinality(train_dataset).numpy()
     print(f"Training on {num_batches} batches per epoch")
@@ -109,7 +113,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
             best_loss = avg_total_loss
             wait = 0
             lr_wait = 0
-            checkpoint.save(os.getenv("CHECKPOINT_PATH", "checkpoints/best_model"))
+            checkpoint_manager.save()
 
             print("Loss improved! Best model saved!")
         else:
