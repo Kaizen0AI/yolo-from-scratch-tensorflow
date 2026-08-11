@@ -133,7 +133,8 @@ def add_targets(dataset, target_fn, target_shape, target_kwargs=None):
 def build_dataset(batch_size=BATCH_SIZE, include_targets=False, target_fn=None, target_shape=None, target_kwargs=None, split="train", shuffle=True):
     if split == "train":
         dataset = tf.data.Dataset.from_tensor_slices(train_ids)
-        dataset = dataset.shuffle(buffer_size=len(train_ids), reshuffle_each_iteration=shuffle)
+        if shuffle:
+            dataset = dataset.shuffle(buffer_size=len(train_ids), reshuffle_each_iteration=True)
     elif split == "val":
         dataset = tf.data.Dataset.from_tensor_slices(val_ids)
     else:
