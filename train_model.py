@@ -115,7 +115,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
         else:
             wait += 1
             lr_wait += 1
-         '''
+        '''
         if lr_wait >= lr_patience:
 
             old_lr = optimizer.learning_rate.numpy()
