@@ -115,7 +115,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
         else:
             wait += 1
             lr_wait += 1
-
+         '''
         if lr_wait >= lr_patience:
 
             old_lr = optimizer.learning_rate.numpy()
@@ -133,7 +133,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
         if wait >= patience:
             print("Early stopping triggered!")
             break
-
+         '''
     print('TRAINING COMPLETE!')
     with open(os.getenv("HISTORY_PATH", "history/history.json"), "w") as f:
         json.dump(history, f)
