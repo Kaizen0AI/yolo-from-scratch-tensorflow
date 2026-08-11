@@ -1,0 +1,77 @@
+IMAGE 1
+Cell=(x=2, y=1), Anchor=1
+True class: 14
+Pred class: 14
+Pred class probability: 0.999
+
+Objectness:
+  target:     1.000
+  prediction: 1.000
+
+Box:
+  tx: target=0.354, pred=0.346
+  ty: target=0.996, pred=1.024
+  tw: target=-0.375, pred=-0.298
+  th: target=1.223, pred=1.153
+
+Cell=(x=2, y=2), Anchor=1
+True class: 13
+Pred class: 13
+Pred class probability: 1.000
+
+Objectness:
+  target:     1.000
+  prediction: 1.000
+...
+  tx: target=0.257, pred=0.239
+  ty: target=0.648, pred=0.658
+  tw: target=0.281, pred=0.280
+  th: target=0.791, pred=0.762
+
+IMAGE 2
+Cell=(x=1, y=3), Anchor=0
+True class: 6
+Pred class: 6
+Pred class probability: 1.000
+
+Objectness:
+  target:     1.000
+  prediction: 1.000
+
+Box:
+  tx: target=0.876, pred=0.964
+  ty: target=0.972, pred=0.974
+  tw: target=-0.174, pred=-0.157
+  th: target=-0.801, pred=-0.866
+
+IMAGE 3
+Cell=(x=3, y=2), Anchor=1
+True class: 0
+Pred class: 0
+Pred class probability: 0.998
+
+Objectness:
+  target:     1.000
+  prediction: 0.999
+
+Box:
+  tx: target=0.871, pred=0.854
+  ty: target=0.850, pred=0.828
+  tw: target=0.255, pred=0.251
+  th: target=-0.276, pred=-0.223
+
+IMAGE 4 
+Cell=(x=2, y=3), Anchor=1
+True class: 14
+Pred class: 14
+Pred class probability: 0.999
+
+Objectness:
+  target:     1.000
+  prediction: 0.999
+
+Box:
+  tx: target=0.539, pred=0.521
+  ty: target=0.941, pred=0.931
+  tw: target=1.085, pred=1.083
+  th: target=1.762, pred=1.712

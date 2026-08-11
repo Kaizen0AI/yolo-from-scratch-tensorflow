@@ -71,7 +71,7 @@ class YOLOLoss(tf.keras.losses.Loss):
         return total_loss, box_loss, obj_loss, no_obj_loss, class_loss
 
     def call(self, y_true, y_pred):
-        total_loss, _, _, _, _ = self.compute_losses(y_true, y_pred)
+        total_loss, _, _, _, _ = self.compute_losses_components(y_true, y_pred)
         return total_loss
     def get_config(self):
         config = super().get_config()

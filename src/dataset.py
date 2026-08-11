@@ -7,11 +7,12 @@ from src.constants import BATCH_SIZE, GRID_SIZE, IMAGE_SIZE, NUM_CLASSES
 
 VOC_ROOT = os.getenv(
     "VOC_ROOT",
-    "E:\\datasets\\pascal-voc-2012\\VOC2012_train_val"
+    "E:/datasets/pascal-voc-2012/VOC2012_train_val"
 )
 IMAGE_DIR = os.path.join(VOC_ROOT, "JPEGImages")
 ANNOTATION_DIR = os.path.join(VOC_ROOT, "Annotations")
 TRAIN_FILE = os.path.join(VOC_ROOT, "ImageSets", "Main", "train.txt")
+VAL_FILE = os.path.join(VOC_ROOT, "ImageSets", "Main", "val.txt")
 
 VOC_CLASSES = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat',
                'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike', 'person',
@@ -25,6 +26,9 @@ ID_TO_CLASS = {i: name for i, name in enumerate(VOC_CLASSES)}
 
 with open(TRAIN_FILE, "r") as f:
     train_ids = f.read().splitlines()
+
+with open(VAL_FILE, "r") as f:
+    val_ids = f.read().splitlines()
 
 
 def load_image(img_id):
@@ -126,9 +130,14 @@ def add_targets(dataset, target_fn, target_shape, target_kwargs=None):
     return dataset.map(_add_targets, num_parallel_calls=tf.data.AUTOTUNE)
 
 
-def build_dataset(batch_size=BATCH_SIZE, include_targets=False, target_fn=None, target_shape=None, target_kwargs=None):
-    dataset = tf.data.Dataset.from_tensor_slices(train_ids)
-    dataset = dataset.shuffle(buffer_size=len(train_ids), reshuffle_each_iteration=True)
+def build_dataset(batch_size=BATCH_SIZE, include_targets=False, target_fn=None, target_shape=None, target_kwargs=None, split="train", shuffle=True):
+    if split == "train":
+        dataset = tf.data.Dataset.from_tensor_slices(train_ids)
+        dataset = dataset.shuffle(buffer_size=len(train_ids), reshuffle_each_iteration=shuffle)
+    elif split == "val":
+        dataset = tf.data.Dataset.from_tensor_slices(val_ids)
+    else:
+        raise ValueError("split must be 'train' or 'val'")
     dataset = dataset.map(lambda x: load_example(x), num_parallel_calls=tf.data.AUTOTUNE)
     dataset = preprocess(dataset)
 
@@ -138,7 +147,7 @@ def build_dataset(batch_size=BATCH_SIZE, include_targets=False, target_fn=None, 
         dataset = add_targets(dataset, target_fn, target_shape, target_kwargs)
 
     padded_shapes = {
-        "image": [224, 224, 3],
+        "image": list(IMAGE_SIZE) + [3],
         "boxes": [None, 4],
         "labels": [None],
     }
@@ -150,11 +159,13 @@ def build_dataset(batch_size=BATCH_SIZE, include_targets=False, target_fn=None, 
     return dataset
 
 
-def build_yolo_dataset(batch_size=BATCH_SIZE):
+def build_yolo_dataset(batch_size=BATCH_SIZE, split="train", shuffle=True):
     from src.targets import ANCHORS, generate_yolo_target
 
     return build_dataset(
         batch_size=batch_size,
+        split=split,
+        shuffle=shuffle,
         include_targets=True,
         target_fn=generate_yolo_target,
         target_shape=(GRID_SIZE[0], GRID_SIZE[1], len(ANCHORS), 5 + NUM_CLASSES),
