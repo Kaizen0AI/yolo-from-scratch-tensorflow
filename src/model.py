@@ -53,7 +53,7 @@ def build_model(input_shape = IMAGE_SIZE + (3,)):
     x= res_block(x, 256, downsample= True)
 
     x= res_block(x, 256)
-    x= res_block(x, 512, downsample= True) #use this during training
+    x= res_block(x, 512, downsample= False) #use this during training
     
     x= tf.keras.layers.Conv2D(512, (3,3), strides= 1, padding= 'same', use_bias= False)(x) # increaese filters to 512 during traning
     x= tf.keras.layers.BatchNormalization()(x)
