@@ -39,7 +39,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
     checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=model)
     checkpoint_manager = tf.train.CheckpointManager(
         checkpoint,
-        directory=os.getenv("CHECKPOINT_PATH", "checkpoints/best_model"),
+        directory=os.getenv("CHECKPOINT_PATH", "checkpoints/best_model.ckpt"),
         max_to_keep=1)
 
     num_batches = tf.data.experimental.cardinality(train_dataset).numpy()
@@ -119,7 +119,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
         else:
             wait += 1
             lr_wait += 1
-        '''
+
         if lr_wait >= lr_patience:
 
             old_lr = optimizer.learning_rate.numpy()
@@ -137,7 +137,7 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
         if wait >= patience:
             print("Early stopping triggered!")
             break
-         '''
+
     print('TRAINING COMPLETE!')
     with open(os.getenv("HISTORY_PATH", "history/history.json"), "w") as f:
         json.dump(history, f)
