@@ -29,19 +29,13 @@ def stem_block(x):
     
     return x
 
-data_augmentation = tf.keras.Sequential([
-    tf.keras.layers.RandomFlip("horizontal"),
-    tf.keras.layers.RandomRotation(0.1),
-])
 
 OUTPUT_CHANNELS = NUM_ANCHORS * (NUM_CLASSES + 5)
 
 def build_model(input_shape = IMAGE_SIZE + (3,)):
     inputs= tf.keras.Input(shape= input_shape)
-
-    x= data_augmentation(inputs)
     
-    x= stem_block(x)
+    x= stem_block(inputs)
     
     x= res_block(x, 32)
     x= res_block(x, 64, downsample= True)

@@ -31,3 +31,8 @@ anaconda_projects/
 # OS files
 Thumbs.db
 .DS_Store
+
+checkpoints/
+new_checkpoints/
+*.index
+*.data-*

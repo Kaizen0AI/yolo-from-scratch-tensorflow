@@ -102,6 +102,64 @@ def preprocess(dataset):
 
     return dataset.map(_preprocess, num_parallel_calls=tf.data.AUTOTUNE)
 
+def augment(dataset):
+    def _augment(example):
+        img = example["image"]
+        boxes = example["boxes"]
+        labels = example["labels"]
+
+        # Random horizontal flip
+        do_flip = tf.random.uniform(()) < 0.5
+
+        def flip_image():
+            return tf.image.flip_left_right(img)
+
+        def keep_image():
+            return img
+
+        img = tf.cond(
+            do_flip,
+            flip_image,
+            keep_image
+        )
+
+        def flip_boxes():
+            xmin = boxes[:, 0]
+            ymin = boxes[:, 1]
+            xmax = boxes[:, 2]
+            ymax = boxes[:, 3]
+
+            flipped_boxes = tf.stack(
+                [
+                    IMAGE_SIZE[1] - xmax,
+                    ymin,
+                    IMAGE_SIZE[1] - xmin,
+                    ymax,
+                ],
+                axis=1
+            )
+
+            return flipped_boxes
+
+        def keep_boxes():
+            return boxes
+
+        boxes = tf.cond(
+            do_flip,
+            flip_boxes,
+            keep_boxes
+        )
+
+        return {
+            "image": img,
+            "boxes": boxes,
+            "labels": labels,
+        }
+
+    return dataset.map(
+        _augment,
+        num_parallel_calls=tf.data.AUTOTUNE
+    )
 
 def add_targets(dataset, target_fn, target_shape, target_kwargs=None):
     def _add_targets(example):
@@ -130,33 +188,73 @@ def add_targets(dataset, target_fn, target_shape, target_kwargs=None):
     return dataset.map(_add_targets, num_parallel_calls=tf.data.AUTOTUNE)
 
 
-def build_dataset(batch_size=BATCH_SIZE, include_targets=False, target_fn=None, target_shape=None, target_kwargs=None, split="train", shuffle=True):
+def build_dataset(
+    batch_size=BATCH_SIZE,
+    include_targets=False,
+    target_fn=None,
+    target_shape=None,
+    target_kwargs=None,
+    split="train",
+    shuffle=True
+):
     if split == "train":
         dataset = tf.data.Dataset.from_tensor_slices(train_ids)
+
         if shuffle:
-            dataset = dataset.shuffle(buffer_size=len(train_ids), reshuffle_each_iteration=True)
+            dataset = dataset.shuffle(
+                buffer_size=len(train_ids),
+                reshuffle_each_iteration=True
+            )
+
     elif split == "val":
         dataset = tf.data.Dataset.from_tensor_slices(val_ids)
+
     else:
         raise ValueError("split must be 'train' or 'val'")
-    dataset = dataset.map(lambda x: load_example(x), num_parallel_calls=tf.data.AUTOTUNE)
+
+    dataset = dataset.map(
+        lambda x: load_example(x),
+        num_parallel_calls=tf.data.AUTOTUNE
+    )
+
     dataset = preprocess(dataset)
+
+    # Only augment training data
+    if split == "train":
+        dataset = augment(dataset)
 
     if include_targets:
         if target_fn is None or target_shape is None:
-            raise ValueError("target_fn and target_shape are required when include_targets=True")
-        dataset = add_targets(dataset, target_fn, target_shape, target_kwargs)
+            raise ValueError(
+                "target_fn and target_shape are required "
+                "when include_targets=True"
+            )
+
+        dataset = add_targets(
+            dataset,
+            target_fn,
+            target_shape,
+            target_kwargs
+        )
 
     padded_shapes = {
         "image": list(IMAGE_SIZE) + [3],
         "boxes": [None, 4],
         "labels": [None],
     }
+
     if include_targets:
         padded_shapes["targets"] = target_shape
 
-    dataset = dataset.padded_batch(batch_size, padded_shapes=padded_shapes)
-    dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+    dataset = dataset.padded_batch(
+        batch_size,
+        padded_shapes=padded_shapes
+    )
+
+    dataset = dataset.prefetch(
+        buffer_size=tf.data.AUTOTUNE
+    )
+
     return dataset
 
 
