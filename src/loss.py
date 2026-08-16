@@ -18,17 +18,48 @@ class YOLOLoss(tf.keras.losses.Loss):
 
     def objectness_loss(self, true_obj, pred_obj, object_mask):
         obj_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-            labels = true_obj, 
-            logits = pred_obj)
+            labels=true_obj,
+            logits=pred_obj
+        )
+
         obj_loss *= object_mask
-        return tf.reduce_sum(obj_loss, axis = (1,2,3))
+
+        # Number of positive object locations in each image
+        positive_count = tf.reduce_sum(
+            object_mask,
+            axis=(1, 2, 3)
+        )
+
+        # Average BCE over positive locations
+        obj_loss = tf.math.divide_no_nan(
+            tf.reduce_sum(obj_loss, axis=(1, 2, 3)),
+            positive_count
+        )
+
+        return obj_loss
+
 
     def no_object_loss(self, true_obj, pred_obj, no_object_mask):
         no_obj_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-            labels = true_obj, 
-            logits = pred_obj)
+            labels=true_obj,
+            logits=pred_obj
+        )
+
         no_obj_loss *= no_object_mask
-        return tf.reduce_sum(no_obj_loss, axis = (1,2,3))
+
+        # Number of negative locations in each image
+        negative_count = tf.reduce_sum(
+            no_object_mask,
+            axis=(1, 2, 3)
+        )
+
+        # Average BCE over negative locations
+        no_obj_loss = tf.math.divide_no_nan(
+            tf.reduce_sum(no_obj_loss, axis=(1, 2, 3)),
+            negative_count
+        )
+
+        return no_obj_loss
 
     def classification_loss(self, true_class, pred_class, object_mask):
         class_loss = tf.nn.softmax_cross_entropy_with_logits(

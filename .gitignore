@@ -36,3 +36,5 @@ checkpoints/
 new_checkpoints/
 *.index
 *.data-*
+
+results.txt
