@@ -150,6 +150,15 @@ def augment(dataset):
             keep_boxes
         )
 
+        # Random Brightness
+        img = tf.image.random_brightness(img, max_delta = 0.1)
+
+        # Random Contrast
+        img = tf.image.random_contrast(img, lower=0.8, upper=1.2)
+
+        # Keep image values valid
+        img = tf.clip_by_value(img, 0.0, 1.0)
+
         return {
             "image": img,
             "boxes": boxes,

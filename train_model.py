@@ -7,7 +7,7 @@ import time
 import json
 import os
 
-def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoch = None, VERBOSE_STEPS = True):
+def train(model, optimizer, train_dataset, val_dataset, loss_fn, epochs = 50 , steps_per_epoch = None, VERBOSE_STEPS = True):
 
     @tf.function
     def train_step(images, targets):
@@ -19,6 +19,42 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
         gradients = tape.gradient(loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         return loss, box_loss, obj_loss, no_obj_loss, class_loss
+    
+    def validate(model, val_dataset, loss_fn):
+        val_total = 0.0
+        val_box = 0.0
+        val_obj = 0.0
+        val_no_obj = 0.0
+        val_class = 0.0
+        num_batches = 0
+
+        for batch in val_dataset:
+            images = batch["image"]
+            targets = batch["targets"]
+
+            predictions = model(images, training=False)
+
+            loss, box_loss, obj_loss, no_obj_loss, class_loss = \
+                loss_fn.compute_losses_components(
+                    targets,
+                    predictions
+                )
+
+            val_total += float(loss)
+            val_box += float(box_loss)
+            val_obj += float(obj_loss)
+            val_no_obj += float(no_obj_loss)
+            val_class += float(class_loss)
+
+            num_batches += 1
+
+        return (
+            val_total / num_batches,
+            val_box / num_batches,
+            val_obj / num_batches,
+            val_no_obj / num_batches,
+            val_class / num_batches,
+        )
 
     history = {
     "loss": [],
@@ -26,8 +62,15 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
     "obj_loss": [],
     "no_obj_loss": [],
     "class_loss": [],
+
+    "val_loss": [],
+    "val_box_loss": [],
+    "val_obj_loss": [],
+    "val_no_obj_loss": [],
+    "val_class_loss": [],
     "lr": []
     }
+
     patience = 10
     wait = 0
     best_loss = float("inf")
@@ -106,6 +149,23 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
         history["lr"].append(float(optimizer.learning_rate.numpy()))
         print(f"Learning rate: " f"{optimizer.learning_rate.numpy():.2e}")
 
+        val_total_loss, val_box_loss, val_obj_loss, val_no_obj_loss, val_class_loss = \
+        validate(model, val_dataset, loss_fn)
+
+        print("-" * 40)
+        print("Validation Summary")
+        print(f"Validation Total Loss : {val_total_loss:.2f}")
+        print(f"Validation Box Loss   : {val_box_loss:.2f}")
+        print(f"Validation Obj Loss   : {val_obj_loss:.2f}")
+        print(f"Validation NoObj Loss : {val_no_obj_loss:.2f}")
+        print(f"Validation Class Loss : {val_class_loss:.2f}")
+
+        history["val_loss"].append(float(val_total_loss))
+        history["val_box_loss"].append(float(val_box_loss))
+        history["val_obj_loss"].append(float(val_obj_loss))
+        history["val_no_obj_loss"].append(float(val_no_obj_loss))
+        history["val_class_loss"].append(float(val_class_loss))
+
         elapsed_time = time.time() - start_time
         print(f"Epoch {epoch+1} completed in {elapsed_time:.2f} seconds")
         min_delta = 0.1
@@ -139,18 +199,22 @@ def train(model, optimizer, train_dataset, loss_fn, epochs = 50 , steps_per_epoc
             break
 
     print('TRAINING COMPLETE!')
-    with open(os.getenv("HISTORY_PATH", "history/history.json"), "w") as f:
+    history_path = os.getenv("HISTORY_PATH", "history/history.json")
+    os.makedirs(os.path.dirname(history_path), exist_ok=True)
+    with open(history_path, "w") as f:
         json.dump(history, f)
     return history
 
 if __name__ == "__main__":
-    yolo_dataset = build_yolo_dataset()
+    train_yolo_dataset = build_yolo_dataset(batch_size=16, split="train", shuffle=True)
+
+    val_dataset = build_yolo_dataset(split="val", shuffle=False, batch_size=16)
 
     model = build_model()
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
-    train_dataset = yolo_dataset.map(
+    train_dataset = train_yolo_dataset.map(
         lambda batch: (batch["image"], batch["targets"]),
         num_parallel_calls=tf.data.AUTOTUNE)
 
@@ -160,4 +224,4 @@ if __name__ == "__main__":
     lambda_noobj=0.5,
     lambda_class=1.0)
 
-    history = train(model, optimizer, train_dataset, loss_fn)
+    history = train(model, optimizer, train_dataset, val_dataset, loss_fn)

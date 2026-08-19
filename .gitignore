@@ -38,3 +38,4 @@ new_checkpoints/
 *.data-*
 
 results.txt
+diagnostics.py
